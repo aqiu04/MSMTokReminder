@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 
 import aiohttp
 import asyncio
+from extensions.dbCollection import dbCollection
 
 times = [] # hold datetime info for each user
 
@@ -10,29 +11,30 @@ times = [] # hold datetime info for each user
 class Define(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
-        self.printer.start()
+        # self.printer.start()
         self.index = 0
+        
+        self.words = dbCollection('words')
+        self.users = dbCollection('users')
 
     @commands.command()
     async def define(self, ctx, word: str) -> None:
         # Check if word is in DB, if not, return message saying no
-        
-        # word_in_DB = True
-        
-        # if not word_in_DB:
-        #     await ctx.send(ctx.author.mention)
-        #     await ctx.send(f"{word} is not defined in the dictionary. Maybe check your spelling?")
-        #     return
-            
-        # If so, find defintion in db
-        
-        word_info = await self.request_word_info(word)
+        word_info = "a"
+        if self.words.find_in_db(word):  
+            word_info = self.words.fetch_from_db(word)
+        else:
+            word_info = await self.request_word_info(word)
+            if 'title' in word_info[0].keys():
+                await ctx.send(f'"**{word}**" is not a valid word according to dictionary.com. Please recheck your spelling.')
+                return
+            self.words.store_in_db(word.lower(), word_info)
         word_info = word_info[0]
         
         # Return definition
         
         embed = discord.Embed(
-        title=f"word",
+        title=f"{word}",
         url=f"https://www.merriam-webster.com/dictionary/{word}",
         color=discord.Colour.blue())
         embed.set_author(name="Daily-Word")
@@ -65,14 +67,14 @@ class Define(commands.Cog):
             async with session.get(url) as resp:
                 return await resp.json()
             
-    @tasks.loop(seconds=1.0)
-    async def printer(self):
-        print(self.index)
-        self.index += 1
+    # @tasks.loop(seconds=1.0)
+    # async def printer(self):
+    #     print(self.index)
+    #     self.index += 1
         
-    @tasks.loop(time = times)
-    async def daily_word(self):
-        pass
+    # @tasks.loop(time = times)
+    # async def daily_word(self):
+    #     pass
                 
                 
 async def setup(bot) -> None:
