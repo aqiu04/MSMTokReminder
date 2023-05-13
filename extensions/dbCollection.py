@@ -5,10 +5,9 @@ class dbCollection():
         CONNECTION_STRING = "mongodb+srv://testuser:TestTest@dailyword1.2fxp7z3.mongodb.net/"
         client = MongoClient(CONNECTION_STRING)
 
-        self.db = client['DailyWords']
-        self.collection = self.db[collection]
+        self.collection = client['DailyWords'][collection]
 
-    def find_in_db(query):
+    def find_in_db(self, query):
         thing = self.collection.find_one({"_id" : query})
         return thing != None
     
