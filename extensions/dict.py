@@ -29,7 +29,7 @@ class Define(commands.Cog):
                 await ctx.send(f'"**{word}**" is not a valid word according to dictionary.com. Please recheck your spelling.')
                 return
             self.words.store_in_db(word.lower(), word_info)
-        word_info = word_info[0]
+            word_info = word_info[0]
         
         # Return definition
         
@@ -58,10 +58,17 @@ class Define(commands.Cog):
     async def help(self, ctx) -> None:
         embed = discord.Embed()
         embed.set_author(name="Help Menu")
-        embed.add_field(name = "**!define**", value = "Gets the definition of any word in the dictionary.")
+        embed.add_field(name = "**!define**", value = "Show the definition of any word in the dictionary.")
         await ctx.send(ctx.author.mention)
         await ctx.send(embed = embed)
         
+    @commands.command()
+    async def synonym(self, ctx, word: str):
+        embed = discord.Embed()
+        embed.set_author(name=f"**Synonyms for {word}**:")
+        await ctx.send(ctx.author.mention)
+        await ctx.send(embed = embed)
+
     @staticmethod
     async def request_word_info(word: str):
         """Gets word information from dictionary.com api
