@@ -1,42 +1,17 @@
-from typing import Union
-
+from discord.ext import commands
 import discord
-from discord.ext import commands, tasks
 
-import logging
-
-intents = discord.Intents.default()
-intents.members = True
+intents = discord.Intents.all()
 description = 'Description'
-DailyWordBot = commands.Bot(command_prefix='?', description=description, intents=intents, help_command=None)
-
-logging.basicConfig(level=logging.INFO, filename="logging.log", datefmt='%m/%d/%Y %H:%M:%S',
-                    format='%(levelname)s: %(module)s: %(message)s; %(asctime)s')
+DailyWordBot = commands.Bot(command_prefix='!', description=description, intents=intents, help_command=None)
+extensions = ("extensions.example",)
 
 
-# GENERAL PURPOSE STUFF
-class GeneralMaintenance(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+@DailyWordBot.event
+async def setup_hook() -> None:
+    for extension in extensions:
+        await DailyWordBot.load_extension(extension)
 
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
-        await DailyWordBot.change_presence(activity=discord.Game("Jstris, ?help"))
-        print(f'Logged in as {DailyWordBot.user} (ID: {DailyWordBot.user.id})')
-        print('------')
-
-    @commands.command()
-    async def help(self, ctx) -> None:
-        logging.info("Executing help")
-        await ctx.send("https://docs.google.com/document/d/"
-                       "1D54qjRTNmkOBXcvff1vpiph5E5txnd6J6R2oI9e6ZMM/edit?usp=sharing")
-        logging.info("Finish help")
-
-
-if __name__ == "__main__":
-    DailyWordBot.add_cog(GeneralMaintenance(DailyWordBot))
-
-    with open('token.txt', 'r') as r:
+with open('token.txt', 'r') as r:
         token = r.readline()
         DailyWordBot.run(token)
-    
