@@ -15,7 +15,7 @@ class Define(commands.Cog):
         self.index = 0
         
         self.words = dbCollection('words')
-        self.users = dbCollection('words')
+        self.users = dbCollection('users')
 
     @commands.command()
     async def define(self, ctx, word: str) -> None:
