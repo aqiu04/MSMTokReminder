@@ -5,6 +5,9 @@ import aiohttp
 import asyncio
 from extensions.dbCollection import dbCollection
 
+from bs4 import BeautifulSoup
+import datetime
+
 times = [] # hold datetime info for each user
 
 # GENERAL PURPOSE STUFF
@@ -29,7 +32,7 @@ class Define(commands.Cog):
                 await ctx.send(f'"**{word}**" is not a valid word according to dictionary.com. Please recheck your spelling.')
                 return
             self.words.store_in_db(word.lower(), word_info)
-        word_info = word_info[0]
+            word_info = word_info[0]
         
         # Return definition
         
@@ -72,9 +75,11 @@ class Define(commands.Cog):
     #     print(self.index)
     #     self.index += 1
         
-    # @tasks.loop(time = times)
-    # async def daily_word(self):
-    #     pass
+    @tasks.loop(time = times)
+    async def daily_word(self):
+        # check which time and user is applicable
+        
+        # mention that user and send the definition of the word
                 
                 
 async def setup(bot) -> None:
