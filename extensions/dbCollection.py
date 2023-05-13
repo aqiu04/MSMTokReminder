@@ -8,9 +8,9 @@ class dbCollection():
         self.db = client['DailyWords']
         self.collection = self.db[collection]
 
-    # def find_in_db(query):
-    #     thing = self.collection.find_one({"_id" : query})
-    #     return thing != None
+    def find_in_db(query):
+        thing = self.collection.find_one({"_id" : query})
+        return thing != None
     
     def fetch_from_db(self, query):
         return self.collection.find_one({"_id" : query})
