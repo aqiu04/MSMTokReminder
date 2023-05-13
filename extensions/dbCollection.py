@@ -8,15 +8,15 @@ class dbCollection():
         self.collection = client['DailyWords'][collection]
 
     def find_in_db(self, query):
-        thing = self.collection.find_one({"_id" : query})
+        thing = self.collection.find_one({"_id" : query.lower()})
         return thing != None
     
     def fetch_from_db(self, query):
-        return self.collection.find_one({"_id" : query})
+        return self.collection.find_one({"_id" : query.lower()})
         
     def store_in_db(self, id, value):
         element = {
-            "_id" : id,
+            "_id" : id.lower(),
             "data" : value
         }
 
