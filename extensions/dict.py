@@ -5,6 +5,9 @@ import aiohttp
 import asyncio
 from extensions.dbCollection import dbCollection
 
+from bs4 import BeautifulSoup
+import datetime
+
 times = [] # hold datetime info for each user
 
 # GENERAL PURPOSE STUFF
@@ -20,19 +23,24 @@ class Define(commands.Cog):
     @commands.command()
     async def define(self, ctx, word: str) -> None:
         # Check if word is in DB, if not, return message saying no
-        word_info = "a"
         if self.words.find_in_db(word):  
-            word_info = self.words.fetch_from_db(word)
+            word_info = self.words.fetch_from_db(word)['data']
         else:
             word_info = await self.request_word_info(word)
             if 'title' in word_info[0].keys():
                 await ctx.send(f'"**{word}**" is not a valid word according to dictionary.com. Please recheck your spelling.')
                 return
             self.words.store_in_db(word.lower(), word_info)
+<<<<<<< HEAD
             word_info = word_info[0]
         
+=======
+        if type(word_info) == list:
+            word_info = word_info[0]
+
+>>>>>>> 5658169afd0c7f18d45a3b51d64f34f15a3c86c2
         # Return definition
-        
+                
         embed = discord.Embed(
         title=f"{word}",
         url=f"https://www.merriam-webster.com/dictionary/{word}",
@@ -89,8 +97,10 @@ class Define(commands.Cog):
         
     # @tasks.loop(time = times)
     # async def daily_word(self):
+    #     # check which time and user is applicable
+        
+    #     # mention that user and send the definition of the word
     #     pass
-                
                 
 async def setup(bot) -> None:
     await bot.add_cog(Define(bot))
