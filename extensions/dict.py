@@ -51,6 +51,14 @@ class Define(commands.Cog):
         
         await ctx.send(ctx.author.mention)
         await ctx.send(embed = embed)
+
+    @commands.command()
+    async def help(self, ctx) -> None:
+        embed = discord.Embed()
+        embed.set_author(name="Help Menu")
+        embed.add_field(name = "**!define**", value = "Gets the definition of any word in the dictionary.")
+        await ctx.send(ctx.author.mention)
+        await ctx.send(embed = embed)
         
     @staticmethod
     async def request_word_info(word: str):
