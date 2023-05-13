@@ -4,7 +4,7 @@ import discord
 intents = discord.Intents.all()
 description = 'Description'
 DailyWordBot = commands.Bot(command_prefix='!', description=description, intents=intents, help_command=None)
-extensions = ("extensions.example",)
+extensions = ("extensions.init", "extensions.dict")
 
 
 @DailyWordBot.event
