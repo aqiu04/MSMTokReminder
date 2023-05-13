@@ -1,6 +1,9 @@
 import discord
 from discord.ext import commands
 
+import aiohttp
+import asyncio
+
 # GENERAL PURPOSE STUFF
 class Define(commands.Cog):
     def __init__(self, bot) -> None:
@@ -10,16 +13,17 @@ class Define(commands.Cog):
     async def define(self, ctx, word: str) -> None:
         # Check if word is in DB, if not, return message saying no
         
-        word_in_DB = True
+        # word_in_DB = True
         
-        if not word_in_DB:
-            await ctx.send(ctx.author.mention)
-            await ctx.send(f"{word} is not defined in the dictionary. Maybe check your spelling?")
-            return
+        # if not word_in_DB:
+        #     await ctx.send(ctx.author.mention)
+        #     await ctx.send(f"{word} is not defined in the dictionary. Maybe check your spelling?")
+        #     return
             
         # If so, find defintion in db
         
-        definition = "sample def"
+        word_info = await self.request_word_info(word)
+        word_info = word_info[0]
         
         # Return definition
         
@@ -28,11 +32,34 @@ class Define(commands.Cog):
         url=f"https://www.merriam-webster.com/dictionary/{word}",
         color=discord.Colour.blue())
         embed.set_author(name="Daily-Word")
-        embed.set_thumbnail(url="https://imgur.com/a/4RU7r8k")
-        embed.add_field(name = f'**Definition:**', value= f"{definition}", inline=True )
+        # embed.set_thumbnail(url="https://imgur.com/a/4RU7r8k")
+        for i in word_info["meanings"]:
+            embed.add_field(name = f'**{i["partOfSpeech"]}**', value= f'', inline=False)
+            embed.add_field(name = f'', value= f'', inline=False)
+            for j in i["definitions"]:
+                embed.add_field(name = f'**Definition:**', value= f'{j["definition"]}', inline=True)
+                if "example" in j.keys():
+                    embed.add_field(name = f'**Example:**', value= f'{j["example"]}', inline=True)
+                else:
+                    embed.add_field(name = f'**Example:**', value= f'', inline=True)
+                embed.add_field(name = f'', value= f'', inline=True)
+
         
         await ctx.send(ctx.author.mention)
         await ctx.send(embed = embed)
+        
+    @staticmethod
+    async def request_word_info(word: str):
+        """Gets word information from dictionary.com api
+
+        Args:
+            word (str): word to query
+        """
+        
+        async with aiohttp.ClientSession() as session:
+            url = f'https://api.dictionaryapi.dev/api/v2/entries/en/{word}'
+            async with session.get(url) as resp:
+                return await resp.json()
                 
 async def setup(bot) -> None:
     await bot.add_cog(Define(bot))
