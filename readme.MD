@@ -39,3 +39,5 @@ In order to register, you can simple use **!adduser %H:%M:%S UTC-integer(default
 You can also define words at any time using **!define** and make studylists using **!study**
 
 All other commands can be viewed using **!help**.
+
+If you want to clone the bot, you need a file named "token.txt" in the same directory as "main.py". This file should contain your personal discord bot token.
