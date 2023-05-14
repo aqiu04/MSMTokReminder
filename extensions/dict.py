@@ -252,7 +252,7 @@ class BotCommands(commands.Cog):
         nerdRoll = random.randint(1, N)
         
         for i in range(1, 4):
-            if random.randint(1, 10) > 5:
+            if random.randint(1, 10) > 6:
                 nerdRoll += 1
 
         if nerdRoll > N:
@@ -278,7 +278,27 @@ class BotCommands(commands.Cog):
         elif isinstance(error, commands.UserInputError):
             await ctx.send("Your argument should be an integer! Usage: " + f"`!{ctx.command.name} {ctx.command.usage}`")
 
-    
+    @commands.command()
+    async def study(self, ctx):
+        """Given a definition, can you guess the word?
+        """
+
+        word = "[word]" #placeholder
+        definition = "placeholder"
+
+        await ctx.send(f"Enter the word being defined by: {definition}")        
+
+        def check(m):
+            return m.author == ctx.author and m.channel == ctx.channel
+
+        msg = await self.bot.wait_for("message")
+
+        if msg.content.lower() == word:
+            await ctx.send("Correct! You are smart just like :nerd:")
+        else:
+            await ctx.send(f"Wrong! The correct word was {word}")
+
+
         
     # @tasks.loop(time = user_times)
     @tasks.loop(minutes = 5)
