@@ -39,9 +39,9 @@ class BotCommands(commands.Cog):
         Args:
             word (str): the word to be defined
         """
-        if not word.isalpha():
-            await ctx.send("I can define words that consist of letters only, silly!")
-            return
+        # if not word.isalpha():
+        #     await ctx.send("I can define words that consist of letters only, silly!")
+        #     return
 
         # Check if word is in DB, if not, return message saying no
         if self.words.find_in_db(word):  
@@ -285,12 +285,31 @@ class BotCommands(commands.Cog):
             await ctx.send("Your argument should be an integer! Usage: " + f"`!{ctx.command.name} {ctx.command.usage}`")
 
     @commands.command()
-    async def study(self, ctx):
+    async def flashcard(self, ctx):
         """Given a definition, can you guess the word?
         """
+        if not self.users.find_in_db(str(ctx.message.author.id)):
+            await ctx.send(f"{ctx.author.mention} You're not registered! LOL! If you want to study, use **!adduser** instead.")
+            return
 
-        word = "[word]" #placeholder
-        definition = "placeholder"
+        user = self.users.fetch_from_db(str(ctx.message.author.id))
+        studyList = user['data']['Study']
+
+        if len(studyList) == 0:
+            await ctx.send(f"Your study list is empty! Add new words to study with !study <word>")
+            return
+
+        studyList = self.users.fetch_from_db(str(ctx.message.author.id))['data']['Study']
+
+        word = studyList[random.randint(0, len(studyList) - 1)]
+
+        word_info = self.words.fetch_from_db(word)['data']
+        if type(word_info) == list:
+            word_info = word_info[0]
+
+        meaning = word_info['meanings'][random.randint(0, len(word_info['meanings']) - 1)]
+    
+        definition = meaning['definitions'][random.randint(0, len(meaning) - 1)]['definition']
 
         await ctx.send(f"Enter the word being defined by: {definition}")        
 
@@ -304,7 +323,77 @@ class BotCommands(commands.Cog):
         else:
             await ctx.send(f"Wrong! The correct word was {word}")
 
+    @commands.command(usage="<word>")
+    async def study(self, ctx, word):
+        """Add a word to your study list.
+        """
+        if not self.users.find_in_db(str(ctx.message.author.id)):
+            await ctx.send(f"{ctx.author.mention} You're not registered! LOL! If you want to study, use **!adduser** instead.")
+            return
+        
+        # Check if word is in DB, if not, return message saying no
+        if not self.words.find_in_db(word):  
+            word_info = await self.request_word_info(word)
+            if type(word_info) == dict:
+                await ctx.send(f"**{word}** isn't a word! :nerd:")
+                return
+            self.words.store_in_db(word, word_info)
+        
+        user = self.users.fetch_from_db(str(ctx.message.author.id))
+        newData = user['data']
+        studyList = newData['Study']
 
+        if word.lower() not in studyList:
+
+            studyList.append(word.lower())
+            newData['Study'] = studyList
+            self.users.replace_in_db(str(ctx.message.author.id), newData)
+
+            await ctx.send(f"{word} successfully added to your study list!")
+
+        else:
+            await ctx.send("You're already studying this word! :book:")
+
+    @study.error
+    async def study_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}` :nerd:")
+
+    @commands.command(usage="<word>")
+    async def unstudy(self, ctx, word):
+        """Remove a word to your study list.
+        """
+        if not self.users.find_in_db(str(ctx.message.author.id)):
+            await ctx.send(f"{ctx.author.mention} You're not registered! LOL! If you want to study, use **!adduser** instead.")
+            return
+        
+        # Check if word is in DB, if not, return message saying no
+        if not self.words.find_in_db(word):  
+            word_info = await self.request_word_info(word)
+            if type(word_info) == dict:
+                await ctx.send(f"**{word}** isn't a word! :nerd:")
+                return
+            self.words.store_in_db(word, word_info)
+
+        user = self.users.fetch_from_db(str(ctx.message.author.id))
+        newData = user['data']
+        studyList = newData['Study']
+
+        if word.lower() in studyList:
+
+            studyList.remove(word.lower())
+            newData['Study'] = studyList
+            self.users.replace_in_db(str(ctx.message.author.id), newData)
+
+            await ctx.send(f"{word} successfully removed from your study list!")
+
+        else:
+            await ctx.send("You aren't studying this word!")
+
+    @unstudy.error
+    async def unstudy_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}` :nerd:")
         
     # @tasks.loop(time = user_times)
     @tasks.loop(minutes = 0.5)
