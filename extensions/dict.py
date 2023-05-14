@@ -278,7 +278,7 @@ class BotCommands(commands.Cog):
         elif isinstance(error, commands.UserInputError):
             await ctx.send("Your argument should be an integer! Usage: " + f"`!{ctx.command.name} {ctx.command.usage}`")
 
-
+    
         
     # @tasks.loop(time = user_times)
     @tasks.loop(minutes = 5)
@@ -343,6 +343,10 @@ class BotCommands(commands.Cog):
             url = f'https://www.merriam-webster.com/word-of-the-day'
             async with session.get(url) as resp:
                 return await resp.text()
+            
+    @commands.command()
+    async def randomemoji(self, ctx):
+        await ctx.send(random_emoji())
             
 def random_emoji():
     emoji_list = [':nerd:', ':disguised_face:', ':clown:', ":cold_face:", ":heart_eyes:", ":full_moon_with_face:", ":smiling_face_with_3_hearts:",
