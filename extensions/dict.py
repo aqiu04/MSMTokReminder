@@ -236,6 +236,49 @@ class BotCommands(commands.Cog):
         else:
             await ctx.send(word["_id"])
 
+    @commands.command(usage="<N>")
+    async def rollvs(self, ctx, N = 6) -> None:
+        """Can you beat the Nerd in an N-sided dice roll?
+
+        Args:
+            N (int): Number of sides of the dice to roll. Default 6, must be greater than 1.
+        """
+
+        if N <= 1: 
+            await ctx.send("The dice must have more than 1 side!")
+            return
+        
+        playerRoll = random.randint(1, N)
+        nerdRoll = random.randint(1, N)
+        
+        for i in range(1, 4):
+            if random.randint(1, 10) > 5:
+                nerdRoll += 1
+
+        if nerdRoll > N:
+            nerdRoll = N
+
+        await ctx.send(f"You :vs: Nerd")
+        await ctx.send(f"Your roll: {playerRoll}")
+        await ctx.send(f"Nerd's roll: {nerdRoll}")
+
+        if nerdRoll == playerRoll:
+            await ctx.send("It's a tie!")
+        elif nerdRoll < playerRoll: 
+            await ctx.send("You win!")
+        else:
+            await ctx.send("You lose! :nerd:")
+
+        return
+
+    @rollvs.error
+    async def rollvs_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument): #this case should not happen because N has a default value
+            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}`")
+        elif isinstance(error, commands.UserInputError):
+            await ctx.send("Your argument should be an integer! Usage: " + f"`!{ctx.command.name} {ctx.command.usage}`")
+
+
         
     # @tasks.loop(time = user_times)
     @tasks.loop(minutes = 5)
