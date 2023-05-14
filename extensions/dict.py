@@ -152,11 +152,11 @@ class BotCommands(commands.Cog):
         hour = str((int(time[:2]) - int(UTC)) % 24)
         minute = time[3:5]
         second = time[6:]
-        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id)}
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": []}
         self.users.store_in_db(str(ctx.message.author.id), timeDict)
         
-        self.daily_word.restart()
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
+        self.daily_word.restart()
         
         await ctx.send(f'{ctx.author.mention} Congratulations! You got registered! Enjoy your words {random_emoji()}')
     
@@ -182,14 +182,20 @@ class BotCommands(commands.Cog):
         if not UTC.lstrip("-").isdigit():
             await ctx.send(f'{ctx.author.mention} Um akshually, **{UTC}** is not a valid UTC value, which is an integer. :nerd:')
             return
+        old = self.users.fetch_from_db(str(ctx.message.author.id))
+        old_hour = int(old['data']['Hour'])
+        old_minute = int(old['data']['Minutes'])
+        old_second = int(old['data']['Seconds'])
+
         hour = str((int(time[:2]) - int(UTC)) % 24)
         minute = time[3:5]
         second = time[6:]
-        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id)}
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": []}
         self.users.replace_in_db(str(ctx.message.author.id), timeDict)
         
-        self.daily_word.restart()
+        # user_times.remove(datetime.time(hour=old_hour, minute=old_minute, second=old_second, tzinfo=timezone.utc))
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
+        self.daily_word.restart()
         await ctx.send(f'{ctx.author.mention} Fine! Your time has been changed to {time} for UTC {UTC}. {random_emoji()}')
     
     @changetime.error
@@ -210,8 +216,8 @@ class BotCommands(commands.Cog):
         hour = int(document['data']['Hour']) 
         minute = int(document['data']['Minutes'])
         second = int(document['data']['Seconds'])
-        self.daily_word.restart()
         user_times.remove(datetime.time(hour=hour, minute=minute, second=second, tzinfo=timezone.utc))
+        self.daily_word.restart()
         await ctx.send(f'{ctx.author.mention} Bye! If you ever want to reregister, use !adduser. {random_emoji()}') 
     
     @commands.command(aliases = ['random', 'rmword'])
@@ -281,7 +287,7 @@ class BotCommands(commands.Cog):
     
         
     # @tasks.loop(time = user_times)
-    @tasks.loop(minutes = 5)
+    @tasks.loop(minutes = 0.5)
     async def daily_word(self):
         now = datetime.datetime.utcnow()
         year = now.year
@@ -295,7 +301,7 @@ class BotCommands(commands.Cog):
             hour = int(h['Hour'])
             minute = int(h['Minutes'])
             second = int(h['Seconds'])
-            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes=10):
+            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(seconds=0.25):
                 continue
             new_users.append(i)
         users = new_users
@@ -353,7 +359,7 @@ class BotCommands(commands.Cog):
             
 def random_emoji():
     emoji_list = [':nerd:', ':disguised_face:', ':clown:', ":cold_face:", ":heart_eyes:", ":full_moon_with_face:", ":smiling_face_with_3_hearts:",
-                  ":poop:", ""]
+                  ":poop:", ":men_with_bunny_ears_partying:", ":skull:"]
     rand = random.randint(0, len(emoji_list) - 1)
     return emoji_list[rand]
     
