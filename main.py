@@ -13,6 +13,7 @@ async def setup_hook() -> None:
     for extension in extensions:
         await DailyWordBot.load_extension(extension)
 
+#Must have a discord bot token pasted into a file named token.txt
 with open('token.txt', 'r') as r:
         token = r.readline()
         DailyWordBot.run(token)

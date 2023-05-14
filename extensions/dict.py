@@ -78,6 +78,7 @@ class BotCommands(commands.Cog):
         await ctx.send(ctx.author.mention)
         await ctx.send(embed = embed)
 
+    #We didn't figure out global error handling in time so most commands have their own error handler
     @define.error
     async def define_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
@@ -237,6 +238,7 @@ class BotCommands(commands.Cog):
 
         word = words[rand]
 
+        #1/100 change to not give a word, LOL!
         if(random.randint(1, 100) == 100):
             await ctx.send(f"Sorry, no word for you! Humor these days is randomly generated! {random_emoji()}")
         else:
@@ -257,6 +259,7 @@ class BotCommands(commands.Cog):
         playerRoll = random.randint(1, N)
         nerdRoll = random.randint(1, N)
         
+        #Nerd magic happens here
         for i in range(1, 4):
             if random.randint(1, 10) > 6:
                 nerdRoll += 1
@@ -299,8 +302,6 @@ class BotCommands(commands.Cog):
             await ctx.send(f"Your study list is empty! Add new words to study with !study <word>")
             return
 
-        studyList = self.users.fetch_from_db(str(ctx.message.author.id))['data']['Study']
-
         word = studyList[random.randint(0, len(studyList) - 1)]
 
         word_info = self.words.fetch_from_db(word)['data']
@@ -316,8 +317,9 @@ class BotCommands(commands.Cog):
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel
 
-        msg = await self.bot.wait_for("message")
+        msg = await self.bot.wait_for("message", check=check)
 
+        #Output based on if user input matches the defined word
         if msg.content.lower() == word:
             await ctx.send("Correct! You are smart just like :nerd:")
         else:
