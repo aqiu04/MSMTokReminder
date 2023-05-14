@@ -71,7 +71,7 @@ class BotCommands(commands.Cog):
                 if "example" in j.keys() and j['example']:
                     embed.add_field(name = f'**Example:**', value= f'{j["example"]}', inline=True)
                 else:
-                    embed.add_field(name = f'‎', value= f'', inline=True)
+                    embed.add_field(name = f'‎', value= f'', inline=True) # An invisible character is used as a placeholder for name
                 embed.add_field(name = f'', value= f'', inline=True)
 
         
@@ -301,7 +301,7 @@ class BotCommands(commands.Cog):
             hour = int(h['Hour'])
             minute = int(h['Minutes'])
             second = int(h['Seconds'])
-            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(seconds=0.25):
+            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes = 0.25):
                 continue
             new_users.append(i)
         users = new_users
@@ -322,7 +322,7 @@ class BotCommands(commands.Cog):
         title=f"{daily_word}",
         url=f"https://www.dictionary.com/browse/{daily_word}",
         color=discord.Colour.blue())
-        embed.set_author(name="Daily-Word")
+        embed.set_author(name=f"Word of the Day! ({month}-{day}-{year}) 📓")
         for i in word_info["meanings"]:
             embed.add_field(name = f'**{i["partOfSpeech"]}**', value= f'', inline=False)
             embed.add_field(name = f'', value= f'', inline=False)
@@ -331,7 +331,7 @@ class BotCommands(commands.Cog):
                 if "example" in j.keys() and j['example']:
                     embed.add_field(name = f'**Example:**', value= f'{j["example"]}', inline=True)
                 else:
-                    embed.add_field(name = f'‎', value= f'', inline=True)
+                    embed.add_field(name = f'‎', value= f'', inline=True) # An invisible character is used as a placeholder for name
                 embed.add_field(name = f'', value= f'', inline=True)
     
         for i in users:
