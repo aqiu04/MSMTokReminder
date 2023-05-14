@@ -5,7 +5,7 @@ import aiohttp
 import asyncio
 from extensions.dbCollection import dbCollection
 
-from bs4 import BeautifulSoup
+#from bs4 import BeautifulSoup
 import datetime
 
 times = [] # hold datetime info for each user
@@ -20,8 +20,12 @@ class Define(commands.Cog):
         self.words = dbCollection('words')
         self.users = dbCollection('users')
 
-    @commands.command(description="Gives the definition of any word in the dictionary.")
+    @commands.command(description="Gives the definition of any word in the dictionary.", usage="<word>")
     async def define(self, ctx, word: str = commands.parameter(description=": the word which is being defined")) -> None:
+        # if(word == "" or args):            
+        #     await ctx.send('Usage: `!define <word>`')
+        #     return
+
         # Check if word is in DB, if not, return message saying no
         if self.words.find_in_db(word):  
             word_info = self.words.fetch_from_db(word)['data']

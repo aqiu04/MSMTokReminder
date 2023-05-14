@@ -3,7 +3,8 @@ import discord
 
 intents = discord.Intents.all()
 description = 'Description'
-DailyWordBot = commands.Bot(command_prefix='!', description=description, intents=intents)
+help_cmd = commands.DefaultHelpCommand(show_parameter_descriptions=False)
+DailyWordBot = commands.Bot(command_prefix='!', description=description, intents=intents, help_command=help_cmd)
 extensions = ("extensions.init", "extensions.dict")
 
 
