@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 import datetime
 from datetime import timezone
 
+import random
+
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 
@@ -32,11 +34,11 @@ class Define(commands.Cog):
         self.bot = bot
         self.daily_word.start()
 
-    @commands.command(description="Gives the definition of any word in the dictionary.", usage="<word>")
+    @commands.command(description="Gives the definition of any word in the dictionary.", name="define", usage="<word>")
     async def define(self, ctx, word: str = commands.parameter(description=": the word which is being defined")) -> None:
-        # if(word == "" or args):            
-        #     await ctx.send('Usage: `!define <word>`')
-        #     return
+        if not word.isalpha():
+            await ctx.send("I can define words that consist of letters only, silly!")
+            return
 
         # Check if word is in DB, if not, return message saying no
         if self.words.find_in_db(word):  
@@ -72,6 +74,11 @@ class Define(commands.Cog):
         
         await ctx.send(ctx.author.mention)
         await ctx.send(embed = embed)
+
+    @define.error
+    async def define_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}`")
 
     # @commands.command()
     # async def help(self, ctx):
@@ -121,7 +128,7 @@ class Define(commands.Cog):
             async with session.get(url) as resp:
                 return await resp.json()
             
-    @commands.command(aliases = ['register'])
+    @commands.command(aliases = ['register'], usage="<HH:MM:SS>")
     async def adduser(self, ctx, time, UTC = "-7"):
         """Add user to task loop for daily word; default pacific coast time
 
@@ -150,8 +157,13 @@ class Define(commands.Cog):
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
         
         await ctx.send(f'{ctx.author.mention} You have been registered for the Word of the Day at time {time} for UTC {UTC}. If you want to change your time, use !changetime. If you want to unregister, use !unregister.')
-        
-    @commands.command()
+    
+    @adduser.error
+    async def adduser_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}`")
+
+    @commands.command(usage="<time (HH:MM:SS)> <hours after UTC>")
     async def changetime(self, ctx, time, UTC = "-7"):
         if not self.users.find_in_db(str(ctx.message.author.id)):
             await ctx.send(f'{ctx.author.mention} Your user is not registered for a certain time. If you want to add your time, use "!adduser" instead.')
@@ -171,7 +183,12 @@ class Define(commands.Cog):
         self.daily_word.restart()
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
         await ctx.send(f'{ctx.author.mention} Your daily Word of the Day time has been changed to {time} for UTC {UTC}.')
-        
+    
+    @changetime.error
+    async def changetime_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}`")
+
     @commands.command()
     async def unregister(self, ctx) -> None:
         if not self.users.find_in_db(str(ctx.message.author.id)):
@@ -186,7 +203,28 @@ class Define(commands.Cog):
         self.daily_word.restart()
         user_times.remove(datetime.time(hour=hour, minute=minute, second=second, tzinfo=timezone.utc))
         await ctx.send(f'{ctx.author.mention} You have been unregistered from word of the Day. If you ever want to reregister, use !adduser.') 
-        
+    
+    @commands.command(aliases = ['random', 'rmword'])
+    async def randomword(self, ctx) -> None:
+        db = self.words.fetch_all_from_db()
+
+        words = [i for i in db]
+
+        size = len(words)
+
+        if size == 0:
+            return
+
+        rand = random.randint(0, size - 1)
+
+        word = words[rand]
+
+        if(random.randint(1, 100) == 100):
+            await ctx.send("Sorry, no word for you! Humor these days is randomly generated!")
+        else:
+            await ctx.send(word["_id"])
+
+
     @tasks.loop(time = user_times)
     async def daily_word(self):
         print("laksdjflkadsj")
