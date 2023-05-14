@@ -49,7 +49,7 @@ class BotCommands(commands.Cog):
         else:
             word_info = await self.request_word_info(word)
             if 'title' in word_info[0].keys():
-                await ctx.send(f'"**{word}**" is not a valid word according to dictionary.com. Please recheck your spelling.')
+                await ctx.send(f"**{word}** isn't a word! :nerd:")
                 return
             self.words.store_in_db(word, word_info)
         if type(word_info) == list:
@@ -81,7 +81,7 @@ class BotCommands(commands.Cog):
     @define.error
     async def define_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}`")
+            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}` :nerd:")
 
     # @commands.command()
     # async def help(self, ctx):
@@ -140,13 +140,13 @@ class BotCommands(commands.Cog):
             UTC (str): UTC timezone, defaults to -7.
         """
         if self.users.find_in_db(str(ctx.message.author.id)):
-            await ctx.send(f'{ctx.author.mention} Your user is already registered for a certain time. If you want to modify your time, use "!changetime" instead.')
+            await ctx.send(f"{ctx.author.mention} You're already registered! LOL! If you want to modify your time, use **!changetime** instead. {random_emoji()}")
             return
         if ":" != time[2] or ":" != time[5] or not time[:2].isdigit() or not time[3:5].isdigit() or not time[6:].isdigit():
-            await ctx.send(f'{ctx.author.mention} **{time}** does not conform with military time style format, which is "HH:MM:SS". Please modify your input.')
+            await ctx.send(f'{ctx.author.mention} Um atshually, **{time}** does not conform with military time style format, which is "HH:MM:SS".  :nerd:')
             return
         if not UTC.lstrip("-").isdigit():
-            await ctx.send(f'{ctx.author.mention} **{UTC}** is not a valid UTC value, which is an integer. Please modify your input.')
+            await ctx.send(f'{ctx.author.mention} Um akshually, **{UTC}** is not a valid UTC value, which is an integer. :nerd:')
             return
         
         hour = str((int(time[:2]) - int(UTC)) % 24)
@@ -158,12 +158,12 @@ class BotCommands(commands.Cog):
         self.daily_word.restart()
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
         
-        await ctx.send(f'{ctx.author.mention} You have been registered for the Word of the Day at time {time} for UTC {UTC}. If you want to change your time, use !changetime. If you want to unregister, use !unregister.')
+        await ctx.send(f'{ctx.author.mention} Congratulations! You got registered! Enjoy your words {random_emoji()}')
     
     @adduser.error
     async def adduser_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}`")
+            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}` :nerd:")
 
     @commands.command(usage="<time> <UTC>")
     async def changetime(self, ctx, time, UTC = "-7"):
@@ -174,13 +174,13 @@ class BotCommands(commands.Cog):
             UTC (str): UTC timezone, defaults to -7.
         """
         if not self.users.find_in_db(str(ctx.message.author.id)):
-            await ctx.send(f'{ctx.author.mention} Your user is not registered for a certain time. If you want to add your time, use "!adduser" instead.')
+            await ctx.send(f"{ctx.author.mention} You're not registered! LOL! If you want to add your time, use **!adduser** instead. {random_emoji()}")
             return
         if ":" != time[2] or ":" != time[5] or not time[:2].isdigit() or not time[3:5].isdigit() or not time[6:].isdigit():
-            await ctx.send(f'{ctx.author.mention} **{time}** does not conform with military time style format, which is "HH:MM:SS". Please modify your input.')
+            await ctx.send(f'{ctx.author.mention} Um atshually, **{time}** does not conform with military time style format, which is "HH:MM:SS".  :nerd:')
             return
         if not UTC.lstrip("-").isdigit():
-            await ctx.send(f'{ctx.author.mention} **{UTC}** is not a valid UTC value, which is an integer. Please modify your input.')
+            await ctx.send(f'{ctx.author.mention} Um akshually, **{UTC}** is not a valid UTC value, which is an integer. :nerd:')
             return
         hour = str((int(time[:2]) - int(UTC)) % 24)
         minute = time[3:5]
@@ -190,7 +190,7 @@ class BotCommands(commands.Cog):
         
         self.daily_word.restart()
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
-        await ctx.send(f'{ctx.author.mention} Your daily Word of the Day time has been changed to {time} for UTC {UTC}.')
+        await ctx.send(f'{ctx.author.mention} Fine! Your time has been changed to {time} for UTC {UTC}. {random_emoji()}')
     
     @changetime.error
     async def changetime_error(self, ctx, error):
@@ -202,7 +202,7 @@ class BotCommands(commands.Cog):
         """Removes user from task loop for daily word
         """
         if not self.users.find_in_db(str(ctx.message.author.id)):
-            await ctx.send(f'{ctx.author.mention} Your user is not registered for a certain time. If you want to add your time, use "!adduser" instead.')
+            await ctx.send(f"{ctx.author.mention} You're not registered! LOL! If you want to add your time, use **!adduser** instead.")
             return
         document = self.users.fetch_from_db(str(ctx.message.author.id))
         self.users.delete_from_db(str(ctx.message.author.id))
@@ -212,7 +212,7 @@ class BotCommands(commands.Cog):
         second = int(document['data']['Seconds'])
         self.daily_word.restart()
         user_times.remove(datetime.time(hour=hour, minute=minute, second=second, tzinfo=timezone.utc))
-        await ctx.send(f'{ctx.author.mention} You have been unregistered from word of the Day. If you ever want to reregister, use !adduser. {random_emoji()}') 
+        await ctx.send(f'{ctx.author.mention} Bye! If you ever want to reregister, use !adduser. {random_emoji()}') 
     
     @commands.command(aliases = ['random', 'rmword'])
     async def randomword(self, ctx) -> None:
@@ -295,7 +295,7 @@ class BotCommands(commands.Cog):
             hour = int(h['Hour'])
             minute = int(h['Minutes'])
             second = int(h['Seconds'])
-            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes=5):
+            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes=10):
                 continue
             new_users.append(i)
         users = new_users
@@ -350,7 +350,7 @@ class BotCommands(commands.Cog):
             
 def random_emoji():
     emoji_list = [':nerd:', ':disguised_face:', ':clown:', ":cold_face:", ":heart_eyes:", ":full_moon_with_face:", ":smiling_face_with_3_hearts:",
-                  ":poop:"]
+                  ":poop:", ""]
     rand = random.randint(0, len(emoji_list) - 1)
     return emoji_list[rand]
     
