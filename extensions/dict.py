@@ -5,7 +5,7 @@ import aiohttp
 import asyncio
 from extensions.dbCollection import dbCollection
 
-from bs4 import BeautifulSoup
+#from bs4 import BeautifulSoup
 import datetime
 
 times = [] # hold datetime info for each user
@@ -30,7 +30,7 @@ class Define(commands.Cog):
             if 'title' in word_info[0].keys():
                 await ctx.send(f'"**{word}**" is not a valid word according to dictionary.com. Please recheck your spelling.')
                 return
-            self.words.store_in_db(word.lower(), word_info)
+            self.words.store_in_db(word, word_info)
         if type(word_info) == list:
             word_info = word_info[0]
 
@@ -56,6 +56,41 @@ class Define(commands.Cog):
         
         await ctx.send(ctx.author.mention)
         await ctx.send(embed = embed)
+
+    @commands.command()
+    async def help(self, ctx):
+        embed = discord.Embed()
+        embed.set_author(name=f"Help Menu")
+        embed.add_field(name = '**!define**', value= f'Gives the definition of a word.', inline=True)
+        embed.add_field(name = '**Example:**', value= f'!define <word>', inline=True)
+
+        await ctx.send(ctx.author.mention)
+        await ctx.send(embed = embed)
+
+    # @commands.command()
+    # async def synonym(self, ctx, word: str):
+
+    #     if self.words.find_in_db(word):  
+    #         word_info = self.words.fetch_from_db(word)['data']
+    #     else:
+    #         word_info = await self.request_word_info(word)
+    #         if 'title' in word_info[0].keys():
+    #             await ctx.send(f'"**{word}**" is not a valid word according to dictionary.com. Please recheck your spelling.')
+    #             return
+    #         self.words.store_in_db(word.lower(), word_info)
+    #     if type(word_info) == list:
+    #         word_info = word_info[0]
+
+    #     embed = discord.Embed()
+    #     embed.set_author(name=f"Synonyms for {word}:")
+
+    #     for i in word_info["meanings"]:
+    #         for j in i["synonyms"]:
+    #             embed.add_field(name = f'{j}', value= f'', inline=True)
+                
+
+    #     await ctx.send(ctx.author.mention)
+    #     await ctx.send(embed = embed)
         
     @staticmethod
     async def request_word_info(word: str):
