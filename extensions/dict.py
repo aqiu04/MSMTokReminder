@@ -6,18 +6,30 @@ import asyncio
 from extensions.dbCollection import dbCollection
 
 from bs4 import BeautifulSoup
-from datetime import datetime, tzinfo, timezone, timedelta
+import datetime
+from datetime import timezone
 
-times = [] # hold datetime info for each user
+intents = discord.Intents.all()
+client = discord.Client(intents=intents)
+
+user_times = []
+all_user_times = dbCollection('users').fetch_all_from_db()
+for document in all_user_times:
+    hour = int(document['data']['Hour']) 
+    minute = int(document['data']['Minutes'])
+    second = int(document['data']['Seconds'])
+    user_times.append(datetime.time(hour=hour, minute=minute, second=second, tzinfo=timezone.utc))
+
+print(user_times)
 
 # GENERAL PURPOSE STUFF
 class Define(commands.Cog):
     def __init__(self, bot) -> None:
-        self.bot = bot
-        self.index = 0
-        
         self.words = dbCollection('words')
         self.users = dbCollection('users')
+        
+        self.bot = bot
+        self.daily_word.start()
 
     @commands.command()
     async def define(self, ctx, word: str) -> None:
@@ -80,15 +92,23 @@ class Define(commands.Cog):
         if self.users.find_in_db(str(ctx.message.author.id)):
             await ctx.send(f'{ctx.author.mention} Your user is already registered for a certain time. If you want to modify your time, use "!changetime" instead.')
             return
-        if ":" != time[2] and ":" != time[5] and not time[:2].isdigit() and not time[3:5].isdigit() and not time[6:].isdigit():
+        if ":" != time[2] or ":" != time[5] or not time[:2].isdigit() or not time[3:5].isdigit() or not time[6:].isdigit():
             await ctx.send(f'{ctx.author.mention} **{time}** does not conform with military time style format, which is "HH:MM:SS". Please modify your input.')
             return
         if not UTC.lstrip("-").isdigit():
             await ctx.send(f'{ctx.author.mention} **{UTC}** is not a valid UTC value, which is an integer. Please modify your input.')
             return
-        timeDict = {"Hour": time[:2], "Minutes": time[3:5], "Seconds": time[6:]}
         
+        hour = str((int(time[:2]) - int(UTC)) % 24)
+        minute = time[3:5]
+        second = time[6:]
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second}
+        print(timeDict)
         self.users.store_in_db(str(ctx.message.author.id), timeDict)
+        
+        self.daily_word.restart()
+        user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
+        
         await ctx.send(f'{ctx.author.mention} You have been registered for the Word of the Day at time {time} for UTC {UTC}. If you want to change your time, use !changetime. If you want to unregister, use !unregister.')
         
     @commands.command()
@@ -96,14 +116,20 @@ class Define(commands.Cog):
         if not self.users.find_in_db(str(ctx.message.author.id)):
             await ctx.send(f'{ctx.author.mention} Your user is not registered for a certain time. If you want to add your time, use "!adduser" instead.')
             return
-        if ":" != time[2] and ":" != time[5] and not time[:2].isdigit() and not time[3:5].isdigit() and not time[6:].isdigit():
+        if ":" != time[2] or ":" != time[5] or not time[:2].isdigit() or not time[3:5].isdigit() or not time[6:].isdigit():
             await ctx.send(f'{ctx.author.mention} **{time}** does not conform with military time style format, which is "HH:MM:SS". Please modify your input.')
             return
         if not UTC.lstrip("-").isdigit():
             await ctx.send(f'{ctx.author.mention} **{UTC}** is not a valid UTC value, which is an integer. Please modify your input.')
             return
-        timeDict = {"Hour": time[:2], "Minutes": time[3:5], "Seconds": time[6:]}
+        hour = str((int(time[:2]) - int(UTC)) % 24)
+        minute = time[3:5]
+        second = time[6:]
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second}
         self.users.replace_in_db(str(ctx.message.author.id), timeDict)
+        
+        self.daily_word.restart()
+        user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
         await ctx.send(f'{ctx.author.mention} Your daily Word of the Day time has been changed to {time} for UTC {UTC}.')
         
     @commands.command()
@@ -111,20 +137,31 @@ class Define(commands.Cog):
         if not self.users.find_in_db(str(ctx.message.author.id)):
             await ctx.send(f'{ctx.author.mention} Your user is not registered for a certain time. If you want to add your time, use "!adduser" instead.')
             return
+        time_to_delete = self.users.fetch_from_db(str(ctx.message.author.id))
         self.users.delete_from_db(str(ctx.message.author.id))
-        await ctx.send(f'{ctx.author.mention} You have been unregistered from word of the Day. If you ever want to reregister, use !adduser.')
-
-    # @tasks.loop(seconds=1.0)
-    # async def printer(self):
-    #     print(self.index)
-    #     self.index += 1
         
-    # @tasks.loop(time = times)
-    # async def daily_word(self):
-    #     # check which time and user is applicable
+        hour = int(document['data']['Hour']) 
+        minute = int(document['data']['Minutes'])
+        second = int(document['data']['Seconds'])
+        self.daily_word.restart()
+        user_times.remove(datetime.time(hour=hour, minute=minute, second=second, tzinfo=timezone.utc))
+        await ctx.send(f'{ctx.author.mention} You have been unregistered from word of the Day. If you ever want to reregister, use !adduser.') 
         
-    #     # mention that user and send the definition of the word
-    #     pass
+    @tasks.loop(time = user_times)
+    async def daily_word(self):
+        print("laksdjflkadsj")
+        now = datetime.datetime.utcnow()
+        users = []
+        for i in user_times:
+            if now - i > datetime.timedelta(minutes=1):
+                continue
+            timeDict = {"Hour": str(i.hour), "Minutes": str(i.minute), "Seconds": str(i.second)}
+            users.append(self.users.find_in_db(timeDict, "data"))
+        
+        for i in users:
+            ctx = client.get_user(int(i['_id']))
+            await ctx.send(f"@{i['_id']} You now have a daily word of the day!!!!")
                 
+        
 async def setup(bot) -> None:
     await bot.add_cog(Define(bot))

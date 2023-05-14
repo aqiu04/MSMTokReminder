@@ -7,12 +7,15 @@ class dbCollection():
 
         self.collection = client['DailyWords'][collection]
 
-    def find_in_db(self, query):
-        thing = self.collection.find_one({"_id" : query.lower()})
+    def find_in_db(self, query, search_term = "_id"):
+        thing = self.collection.find_one({search_term: query.lower()})
         return thing != None
     
-    def fetch_from_db(self, query):
-        return self.collection.find_one({"_id" : query.lower()})
+    def fetch_from_db(self, query, search_term = "_id"):
+        return self.collection.find_one({search_term: query.lower()})
+
+    def fetch_all_from_db(self):
+        return self.collection.find({})
         
     def store_in_db(self, id, value):
         element = {
