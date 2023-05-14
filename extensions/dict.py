@@ -48,7 +48,7 @@ class BotCommands(commands.Cog):
             word_info = self.words.fetch_from_db(word)['data']
         else:
             word_info = await self.request_word_info(word)
-            if 'title' in word_info[0].keys():
+            if type(word_info) == dict:
                 await ctx.send(f"**{word}** isn't a word! :nerd:")
                 return
             self.words.store_in_db(word, word_info)
