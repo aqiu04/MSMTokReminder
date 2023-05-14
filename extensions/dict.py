@@ -68,10 +68,10 @@ class BotCommands(commands.Cog):
             embed.add_field(name = f'', value= f'', inline=False)
             for j in i["definitions"]:
                 embed.add_field(name = f'**Definition:**', value= f'{j["definition"]}', inline=True)
-                if "example" in j.keys():
+                if "example" in j.keys() and j['example']:
                     embed.add_field(name = f'**Example:**', value= f'{j["example"]}', inline=True)
                 else:
-                    embed.add_field(name = f'**Example:**', value= f'', inline=True)
+                    embed.add_field(name = f'‎', value= f'', inline=True) # An invisible character is used as a placeholder for name
                 embed.add_field(name = f'', value= f'', inline=True)
 
         
@@ -193,7 +193,7 @@ class BotCommands(commands.Cog):
         timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": []}
         self.users.replace_in_db(str(ctx.message.author.id), timeDict)
         
-        # user_times.remove(datetime.time(hour=old_hour, minute=old_minute, second=old_second, tzinfo=timezone.utc))
+        user_times.remove(datetime.time(hour=old_hour, minute=old_minute, second=old_second, tzinfo=timezone.utc))
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
         self.daily_word.restart()
         await ctx.send(f'{ctx.author.mention} Fine! Your time has been changed to {time} for UTC {UTC}. {random_emoji()}')
@@ -410,7 +410,7 @@ class BotCommands(commands.Cog):
             hour = int(h['Hour'])
             minute = int(h['Minutes'])
             second = int(h['Seconds'])
-            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(seconds=0.25):
+            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes = 0.25):
                 continue
             new_users.append(i)
         users = new_users
@@ -431,16 +431,16 @@ class BotCommands(commands.Cog):
         title=f"{daily_word}",
         url=f"https://www.dictionary.com/browse/{daily_word}",
         color=discord.Colour.blue())
-        embed.set_author(name="Daily-Word")
+        embed.set_author(name=f"Word of the Day! ({month}-{day}-{year}) 📓")
         for i in word_info["meanings"]:
             embed.add_field(name = f'**{i["partOfSpeech"]}**', value= f'', inline=False)
             embed.add_field(name = f'', value= f'', inline=False)
             for j in i["definitions"]:
                 embed.add_field(name = f'**Definition:**', value= f'{j["definition"]}', inline=True)
-                if "example" in j.keys():
+                if "example" in j.keys() and j['example']:
                     embed.add_field(name = f'**Example:**', value= f'{j["example"]}', inline=True)
                 else:
-                    embed.add_field(name = f'**Example:**', value= f'', inline=True)
+                    embed.add_field(name = f'‎', value= f'', inline=True) # An invisible character is used as a placeholder for name
                 embed.add_field(name = f'', value= f'', inline=True)
     
         for i in users:
