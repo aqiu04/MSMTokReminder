@@ -2,21 +2,31 @@
 
 ## About Us
 
-Experience the power of words like never before!
+📚🔥 Welcome to the realm of words, where each user becomes a master linguist! 🤓✨
 
-Step into a world of endless possibilities where each user becomes a master of language. Introducing our extraordinary platform that takes your vocabulary to new heights!
+Unleash the 🌌 power of words like never before as you embark on an epic quest to expand your vocabulary! 💪💬
 
-Unlock the gateway to linguistic excellence as you register for your very own daily word, carefully curated to ignite your intellectual fire. With every word, you embark on a journey of knowledge and self-improvement, fueling your passion for language.
+🔓 Unlock the gateway to linguistic excellence as you register for your very own daily word, carefully curated to ignite your intellectual fire. 📝🔥
 
-Harnessing the cutting-edge capabilities of MongoDB Atlas, your personalized study list becomes an invaluable companion on your quest for linguistic mastery. Your progress is securely stored, ensuring your growth is never lost and your commitment to self-improvement is always rewarded.
+With every word, you dive deeper into the vast sea of knowledge, fueled by an insatiable thirst for linguistic mastery! 🌊🧠
 
-We've partnered with the renowned Merriam Webster's Word of the Day to provide you with a daily dose of brilliance. Immerse yourself in the richness of language as you explore the depths of each carefully selected word, broadening your understanding and expanding your communication prowess.
+Harnessing the cutting-edge capabilities of MongoDB Atlas, your personalized study list becomes an invaluable companion on your journey. 📚🌟
 
-But we didn't stop there! We've enlisted the expertise of Dictionary.com to bring you comprehensive and authoritative definitions for every word you request. No more second-guessing or settling for mediocrity; with our vast library of definitions at your fingertips, you'll never be lost for words again.
+Watch as your progress is securely stored, ensuring your growth is never lost and your commitment to self-improvement is always rewarded. 💾🌱
 
-Embracing the innovative capabilities of discord.py, we've seamlessly integrated all the functionalities you need, from previous minigames to a host of other captivating features. Say goodbye to scattered platforms and hello to a unified and immersive experience that takes your language skills to the next level.
+We've partnered with the renowned Merriam Webster's Word of the Day to provide you with a daily dose of brilliance. 🌟📅
 
-Don't miss out on this groundbreaking opportunity to redefine your linguistic prowess. Join us today and unlock a world of words, inspiration, and endless growth. Your journey to becoming a true wordsmith starts now!
+Immerse yourself in the richness of language as you explore the depths of each carefully selected word, broadening your understanding and expanding your communication prowess! 📚🌈
+
+But wait, there's more! We've enlisted the expertise of Dictionary.com to bring you comprehensive and authoritative definitions for every word you request. 📖🔍
+
+No more second-guessing or settling for mediocrity; with our vast library of definitions at your fingertips, you'll never be lost for words again! 💡💬
+
+Embracing the innovative capabilities of discord.py, we've seamlessly integrated all the functionalities you need, from previous minigames to a host of other captivating features. 🎮🤝
+
+Say goodbye to scattered platforms and hello to a unified and immersive experience that takes your language skills to the next level! 🌟🔥
+
+Don't miss out on this groundbreaking opportunity to redefine your linguistic prowess. Join us today and unlock a world of words, inspiration, and endless growth. Your journey to becoming a true wordsmith starts now! 🚀🔓🌍
 
 (Sourced by ChatGPT-3.5, since we can't write ourselves because we're compsci majors)
 
