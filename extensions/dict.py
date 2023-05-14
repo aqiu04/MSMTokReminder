@@ -5,7 +5,7 @@ import aiohttp
 import asyncio
 from extensions.dbCollection import dbCollection
 
-#from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup
 import datetime
 
 times = [] # hold datetime info for each user
@@ -20,8 +20,8 @@ class Define(commands.Cog):
         self.words = dbCollection('words')
         self.users = dbCollection('users')
 
-    @commands.command()
-    async def define(self, ctx, word: str) -> None:
+    @commands.command(description="Gives the definition of any word in the dictionary.")
+    async def define(self, ctx, word: str = commands.parameter(description=": the word which is being defined")) -> None:
         # Check if word is in DB, if not, return message saying no
         if self.words.find_in_db(word):  
             word_info = self.words.fetch_from_db(word)['data']
@@ -57,15 +57,15 @@ class Define(commands.Cog):
         await ctx.send(ctx.author.mention)
         await ctx.send(embed = embed)
 
-    @commands.command()
-    async def help(self, ctx):
-        embed = discord.Embed()
-        embed.set_author(name=f"Help Menu")
-        embed.add_field(name = '**!define**', value= f'Gives the definition of a word.', inline=True)
-        embed.add_field(name = '**Example:**', value= f'!define <word>', inline=True)
+    # @commands.command()
+    # async def help(self, ctx):
+    #     embed = discord.Embed()
+    #     embed.set_author(name=f"Help Menu")
+    #     embed.add_field(name = '**!define**', value= f'Gives the definition of a word.', inline=True)
+    #     embed.add_field(name = '**Example:**', value= f'!define <word>', inline=True)
 
-        await ctx.send(ctx.author.mention)
-        await ctx.send(embed = embed)
+    #     await ctx.send(ctx.author.mention)
+    #     await ctx.send(embed = embed)
 
     # @commands.command()
     # async def synonym(self, ctx, word: str):
