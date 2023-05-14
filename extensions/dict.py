@@ -212,7 +212,7 @@ class BotCommands(commands.Cog):
         second = int(document['data']['Seconds'])
         self.daily_word.restart()
         user_times.remove(datetime.time(hour=hour, minute=minute, second=second, tzinfo=timezone.utc))
-        await ctx.send(f'{ctx.author.mention} You have been unregistered from word of the Day. If you ever want to reregister, use !adduser.') 
+        await ctx.send(f'{ctx.author.mention} You have been unregistered from word of the Day. If you ever want to reregister, use !adduser. {random_emoji()}') 
     
     @commands.command(aliases = ['random', 'rmword'])
     async def randomword(self, ctx) -> None:
@@ -232,7 +232,7 @@ class BotCommands(commands.Cog):
         word = words[rand]
 
         if(random.randint(1, 100) == 100):
-            await ctx.send("Sorry, no word for you! Humor these days is randomly generated!")
+            await ctx.send(f"Sorry, no word for you! Humor these days is randomly generated! {random_emoji()}")
         else:
             await ctx.send(word["_id"])
 
@@ -290,7 +290,8 @@ class BotCommands(commands.Cog):
             ctx = user_connec.dm_channel
             if ctx is None:
                 ctx = await user_connec.create_dm()
-            await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!!")
+            
+            await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!! {random_emoji()}")
             await ctx.send(embed = embed)
     
     @staticmethod
@@ -299,6 +300,13 @@ class BotCommands(commands.Cog):
             url = f'https://www.merriam-webster.com/word-of-the-day'
             async with session.get(url) as resp:
                 return await resp.text()
+            
+def random_emoji():
+    emoji_list = [':nerd:', ':disguised_face:', ':clown:', ":cold_face:", ":heart_eyes:", ":full_moon_with_face:", ":smiling_face_with_3_hearts:",
+                  ":poop:"]
+    rand = random.randint(0, len(emoji_list) - 1)
+    return emoji_list[rand]
+    
         
 async def setup(bot) -> None:
     await bot.add_cog(BotCommands(bot))
