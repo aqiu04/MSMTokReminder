@@ -59,7 +59,7 @@ class BotCommands(commands.Cog):
                 
         embed = discord.Embed(
         title=f"{word}",
-        url=f"https://www.merriam-webster.com/dictionary/{word}",
+        url=f"https://www.dictionary.com/browse/{word}",
         color=discord.Colour.blue())
         embed.set_author(name="Daily-Word")
         # embed.set_thumbnail(url="https://imgur.com/a/4RU7r8k")
@@ -238,7 +238,7 @@ class BotCommands(commands.Cog):
 
         
     # @tasks.loop(time = user_times)
-    @tasks.loop(seconds = 5)
+    @tasks.loop(minutes = 5)
     async def daily_word(self):
         now = datetime.datetime.utcnow()
         year = now.year
@@ -252,9 +252,10 @@ class BotCommands(commands.Cog):
             hour = int(h['Hour'])
             minute = int(h['Minutes'])
             second = int(h['Seconds'])
-            if now - datetime.datetime(year, month, day, hour, minute, second) < datetime.timedelta(minutes=1):
+            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes=5):
                 continue
-            users.remove(i)
+            new_users.append(i)
+        users = new_users
         
         html_content = await self.daily_word_scraper()
         soup = BeautifulSoup(html_content, 'html.parser')
@@ -270,7 +271,7 @@ class BotCommands(commands.Cog):
                 
         embed = discord.Embed(
         title=f"{daily_word}",
-        url=f"https://www.merriam-webster.com/dictionary/{daily_word}",
+        url=f"https://www.dictionary.com/browse/{daily_word}",
         color=discord.Colour.blue())
         embed.set_author(name="Daily-Word")
         for i in word_info["meanings"]:
