@@ -61,7 +61,7 @@ class BotCommands(commands.Cog):
         title=f"{word}",
         url=f"https://www.dictionary.com/browse/{word}",
         color=discord.Colour.blue())
-        embed.set_author(name="Daily-Word's Definition! 🔖")
+        embed.set_author(name="Daily-Word")
         # embed.set_thumbnail(url="https://imgur.com/a/4RU7r8k")
         for i in word_info["meanings"]:
             embed.add_field(name = f'**{i["partOfSpeech"]}**', value= f'', inline=False)
@@ -308,9 +308,10 @@ class BotCommands(commands.Cog):
         if type(word_info) == list:
             word_info = word_info[0]
 
+        
         meaning = word_info['meanings'][random.randint(0, len(word_info['meanings']) - 1)]
     
-        definition = meaning['definitions'][random.randint(0, len(meaning) - 1)]['definition']
+        definition = meaning['definitions'][random.randint(0, len(meaning['definitions']) - 1)]['definition']
 
         await ctx.send(f"Enter the word being defined by: {definition}")        
 
