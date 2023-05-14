@@ -8,7 +8,7 @@ from extensions.dbCollection import dbCollection
 import datetime
 from bs4 import BeautifulSoup
 import datetime
-from datetime import timezone
+from datetime import timezone, timedelta
 
 import random
 
@@ -23,10 +23,8 @@ for document in all_user_times:
     second = int(document['data']['Seconds'])
     user_times.append(datetime.time(hour=hour, minute=minute, second=second, tzinfo=timezone.utc))
 
-print(user_times)
-
 # GENERAL PURPOSE STUFF
-class Define(commands.Cog):
+class BotCommands(commands.Cog):
     def __init__(self, bot) -> None:
         self.words = dbCollection('words')
         self.users = dbCollection('users')
@@ -36,6 +34,11 @@ class Define(commands.Cog):
 
     @commands.command(description="Gives the definition of any word in the dictionary.", name="define", usage="<word>")
     async def define(self, ctx, word: str = commands.parameter(description=": the word which is being defined")) -> None:
+        """Gives the dictionary definition of any word
+
+        Args:
+            word (str): the word to be defined
+        """
         if not word.isalpha():
             await ctx.send("I can define words that consist of letters only, silly!")
             return
@@ -128,7 +131,7 @@ class Define(commands.Cog):
             async with session.get(url) as resp:
                 return await resp.json()
             
-    @commands.command(aliases = ['register'], usage="<HH:MM:SS>")
+    @commands.command(aliases = ['register'], usage="<time> <UTC>")
     async def adduser(self, ctx, time, UTC = "-7"):
         """Add user to task loop for daily word; default pacific coast time
 
@@ -149,8 +152,7 @@ class Define(commands.Cog):
         hour = str((int(time[:2]) - int(UTC)) % 24)
         minute = time[3:5]
         second = time[6:]
-        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second}
-        print(timeDict)
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id)}
         self.users.store_in_db(str(ctx.message.author.id), timeDict)
         
         self.daily_word.restart()
@@ -163,8 +165,14 @@ class Define(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}`")
 
-    @commands.command(usage="<time (HH:MM:SS)> <hours after UTC>")
+    @commands.command(usage="<time> <UTC>")
     async def changetime(self, ctx, time, UTC = "-7"):
+        """Change user's time to receive daily word; default pacific coast time
+
+        Args:
+            time (str): military time in format "HH:MM:SS"; add all zeros as applicable
+            UTC (str): UTC timezone, defaults to -7.
+        """
         if not self.users.find_in_db(str(ctx.message.author.id)):
             await ctx.send(f'{ctx.author.mention} Your user is not registered for a certain time. If you want to add your time, use "!adduser" instead.')
             return
@@ -177,7 +185,7 @@ class Define(commands.Cog):
         hour = str((int(time[:2]) - int(UTC)) % 24)
         minute = time[3:5]
         second = time[6:]
-        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second}
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id)}
         self.users.replace_in_db(str(ctx.message.author.id), timeDict)
         
         self.daily_word.restart()
@@ -191,10 +199,12 @@ class Define(commands.Cog):
 
     @commands.command()
     async def unregister(self, ctx) -> None:
+        """Removes user from task loop for daily word
+        """
         if not self.users.find_in_db(str(ctx.message.author.id)):
             await ctx.send(f'{ctx.author.mention} Your user is not registered for a certain time. If you want to add your time, use "!adduser" instead.')
             return
-        time_to_delete = self.users.fetch_from_db(str(ctx.message.author.id))
+        document = self.users.fetch_from_db(str(ctx.message.author.id))
         self.users.delete_from_db(str(ctx.message.author.id))
         
         hour = int(document['data']['Hour']) 
@@ -206,6 +216,8 @@ class Define(commands.Cog):
     
     @commands.command(aliases = ['random', 'rmword'])
     async def randomword(self, ctx) -> None:
+        """The Nerd will pull a random word from his lexicon!
+        """
         db = self.words.fetch_all_from_db()
 
         words = [i for i in db]
@@ -224,23 +236,32 @@ class Define(commands.Cog):
         else:
             await ctx.send(word["_id"])
 
-
-    @tasks.loop(time = user_times)
-    async def daily_word(self):
-        print("laksdjflkadsj")
-        now = datetime.datetime.utcnow()
-        users = []
-        for i in user_times:
-            if now - i > datetime.timedelta(minutes=1):
-                continue
-            timeDict = {"Hour": str(i.hour), "Minutes": str(i.minute), "Seconds": str(i.second)}
-            users.append(self.users.find_in_db(timeDict, "data"))
         
+    # @tasks.loop(time = user_times)
+    @tasks.loop(seconds = 5)
+    async def daily_word(self):
+        now = datetime.datetime.utcnow()
+        year = now.year
+        month = now.month
+        day = now.day
+        users = self.users.fetch_all_from_db()
+        users = [i for i in users]
+        for i, j in enumerate(users):
+            h = j['data']
+            hour = int(h['Hour'])
+            minute = int(h['Minutes'])
+            second = int(h['Seconds'])
+            if now - datetime.datetime(year, month, day, hour, minute, second) < datetime.timedelta(minutes=1):
+                continue
+            users.remove(i)
         for i in users:
-            ctx = client.get_user(int(i['_id']))
-            await ctx.send(f"@{i['_id']} You now have a daily word of the day!!!!")
+            user_connec = await self.bot.fetch_user(int(i['_id']))
+            ctx = user_connec.dm_channel
+            if ctx is None:
+                ctx = await user_connec.create_dm()
+            await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!!")
                 
         
 async def setup(bot) -> None:
-    await bot.add_cog(Define(bot))
+    await bot.add_cog(BotCommands(bot))
 
