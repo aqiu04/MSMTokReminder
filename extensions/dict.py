@@ -61,7 +61,7 @@ class BotCommands(commands.Cog):
         title=f"{word}",
         url=f"https://www.dictionary.com/browse/{word}",
         color=discord.Colour.blue())
-        embed.set_author(name="Daily-Word")
+        embed.set_author(name="Daily-Word's Definition! 🔖")
         # embed.set_thumbnail(url="https://imgur.com/a/4RU7r8k")
         for i in word_info["meanings"]:
             embed.add_field(name = f'**{i["partOfSpeech"]}**', value= f'', inline=False)
