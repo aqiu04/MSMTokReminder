@@ -21,7 +21,26 @@ class dbCollection():
         }
 
         self.collection.insert_one(element)
-
+        
+    def replace_in_db(self, id, value) -> bool:
+        if not self.find_in_db(id):
+            return False
+        old_element = self.fetch_from_db(id)
+        new_element = {
+            "_id" : id.lower(),
+            "data" : value
+        }
+        self.collection.replace_one(old_element, new_element)
+        return True
+    
+    def delete_from_db(self, id) -> bool:
+        if not self.find_in_db(id):
+            return False
+        element = {
+            "_id" : id.lower()
+        }
+        self.collection.delete_one(element)
+        return True
 
     
     
