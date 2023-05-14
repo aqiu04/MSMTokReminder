@@ -6,7 +6,7 @@ import asyncio
 from extensions.dbCollection import dbCollection
 
 from bs4 import BeautifulSoup
-import datetime
+from datetime import datetime, tzinfo, timezone, timedelta
 
 times = [] # hold datetime info for each user
 
@@ -14,7 +14,6 @@ times = [] # hold datetime info for each user
 class Define(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
-        # self.printer.start()
         self.index = 0
         
         self.words = dbCollection('words')
@@ -69,6 +68,28 @@ class Define(commands.Cog):
             url = f'https://api.dictionaryapi.dev/api/v2/entries/en/{word}'
             async with session.get(url) as resp:
                 return await resp.json()
+            
+    @commands.command()
+    async def adduser(self, ctx, time, UTC = "-7"):
+        """Add user to task loop for daily word; default pacific coast time
+
+        Args:
+            time (str): military time in format "HH:MM:SS"; add all zeros as applicable
+            UTC (str): UTC timezone, defaults to -7.
+        """
+        if self.users.find_in_db(str(ctx.message.author.id)):
+            await ctx.send(f'{ctx.author.mention} Your user is already registered for a certain time. If you want to modify your time, use "!changetime" instead.')
+            return
+        if ":" != time[2] and ":" != time[5] and not time[:2].isdigit() and not time[3:5].isdigit() and not time[6:].isdigit():
+            await ctx.send(f'{ctx.author.mention} **{time}** does not conform with military time style format, which is "HH:MM:SS". Please modify your input.')
+            return
+        if not UTC.lstrip("-").isdigit():
+            await ctx.send(f'{ctx.author.mention} **{UTC}** is not a valid UTC value, which is an integer. Please modify your input.')
+            return
+        timeDict = {"Hour": time[:2], "Minutes": time[3:5], "Seconds": time[6:]}
+        
+        self.users.store_in_db(str(ctx.message.author.id), timeDict)
+        await ctx.send(f'{ctx.author.mention} You have been registered for the Daily Word of the Day for the time {time} at UTC {UTC}. If you want to change your time, use !changetime.')
             
     # @tasks.loop(seconds=1.0)
     # async def printer(self):
