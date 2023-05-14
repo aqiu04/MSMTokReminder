@@ -346,6 +346,9 @@ class BotCommands(commands.Cog):
             
     @commands.command()
     async def randomemoji(self, ctx):
+        """The Nerd shares a random emoji he likes.
+        """
+
         await ctx.send(random_emoji())
             
 def random_emoji():
