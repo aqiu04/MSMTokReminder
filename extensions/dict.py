@@ -69,7 +69,7 @@ class Define(commands.Cog):
             async with session.get(url) as resp:
                 return await resp.json()
             
-    @commands.command()
+    @commands.command(aliases = ['register'])
     async def adduser(self, ctx, time, UTC = "-7"):
         """Add user to task loop for daily word; default pacific coast time
 
@@ -89,8 +89,31 @@ class Define(commands.Cog):
         timeDict = {"Hour": time[:2], "Minutes": time[3:5], "Seconds": time[6:]}
         
         self.users.store_in_db(str(ctx.message.author.id), timeDict)
-        await ctx.send(f'{ctx.author.mention} You have been registered for the Daily Word of the Day for the time {time} at UTC {UTC}. If you want to change your time, use !changetime.')
-            
+        await ctx.send(f'{ctx.author.mention} You have been registered for the Word of the Day at time {time} for UTC {UTC}. If you want to change your time, use !changetime. If you want to unregister, use !unregister.')
+        
+    @commands.command()
+    async def changetime(self, ctx, time, UTC = "-7"):
+        if not self.users.find_in_db(str(ctx.message.author.id)):
+            await ctx.send(f'{ctx.author.mention} Your user is not registered for a certain time. If you want to add your time, use "!adduser" instead.')
+            return
+        if ":" != time[2] and ":" != time[5] and not time[:2].isdigit() and not time[3:5].isdigit() and not time[6:].isdigit():
+            await ctx.send(f'{ctx.author.mention} **{time}** does not conform with military time style format, which is "HH:MM:SS". Please modify your input.')
+            return
+        if not UTC.lstrip("-").isdigit():
+            await ctx.send(f'{ctx.author.mention} **{UTC}** is not a valid UTC value, which is an integer. Please modify your input.')
+            return
+        timeDict = {"Hour": time[:2], "Minutes": time[3:5], "Seconds": time[6:]}
+        self.users.replace_in_db(str(ctx.message.author.id), timeDict)
+        await ctx.send(f'{ctx.author.mention} Your daily Word of the Day time has been changed to {time} for UTC {UTC}.')
+        
+    @commands.command()
+    async def unregister(self, ctx) -> None:
+        if not self.users.find_in_db(str(ctx.message.author.id)):
+            await ctx.send(f'{ctx.author.mention} Your user is not registered for a certain time. If you want to add your time, use "!adduser" instead.')
+            return
+        self.users.delete_from_db(str(ctx.message.author.id))
+        await ctx.send(f'{ctx.author.mention} You have been unregistered from word of the Day. If you ever want to reregister, use !adduser.')
+
     # @tasks.loop(seconds=1.0)
     # async def printer(self):
     #     print(self.index)
