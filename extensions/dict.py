@@ -236,6 +236,27 @@ class BotCommands(commands.Cog):
         else:
             await ctx.send(word["_id"])
 
+    @commands.command(usage="<N>")
+    async def rollvs(self, ctx, N: int = commands.parameter(default=6)) -> None:
+        """Can you beat the Nerd in an N-sided dice roll?
+
+        Args:
+            N (int): Number of sides of the dice to roll. Default 6, must be greater than 1.
+        """
+        if N <= 1: 
+            await ctx.send("The dice must have more than 1 side!")
+            return
+        
+        return
+
+    @rollvs.error
+    async def rollvs_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}`")
+        elif isinstance(error, commands.UserInputError):
+            await ctx.send("Your argument should be an integer! Usage: " + f"`!{ctx.command.name} {ctx.command.usage}`")
+
+
         
     # @tasks.loop(time = user_times)
     @tasks.loop(seconds = 5)
