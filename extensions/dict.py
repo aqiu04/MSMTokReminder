@@ -59,7 +59,7 @@ class BotCommands(commands.Cog):
                 
         embed = discord.Embed(
         title=f"{word}",
-        url=f"https://www.merriam-webster.com/dictionary/{word}",
+        url=f"https://www.dictionary.com/browse/{word}",
         color=discord.Colour.blue())
         embed.set_author(name="Daily-Word")
         # embed.set_thumbnail(url="https://imgur.com/a/4RU7r8k")
@@ -259,7 +259,7 @@ class BotCommands(commands.Cog):
 
         
     # @tasks.loop(time = user_times)
-    @tasks.loop(seconds = 5)
+    @tasks.loop(minutes = 5)
     async def daily_word(self):
         now = datetime.datetime.utcnow()
         year = now.year
@@ -267,21 +267,59 @@ class BotCommands(commands.Cog):
         day = now.day
         users = self.users.fetch_all_from_db()
         users = [i for i in users]
-        for i, j in enumerate(users):
-            h = j['data']
+        new_users = []
+        for i in users:
+            h = i['data']
             hour = int(h['Hour'])
             minute = int(h['Minutes'])
             second = int(h['Seconds'])
-            if now - datetime.datetime(year, month, day, hour, minute, second) < datetime.timedelta(minutes=1):
+            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes=5):
                 continue
-            users.remove(i)
+            new_users.append(i)
+        users = new_users
+        
+        html_content = await self.daily_word_scraper()
+        soup = BeautifulSoup(html_content, 'html.parser')
+        daily_word = soup.find('h2', 'word-header-txt').text
+        
+        word_info = await self.request_word_info(daily_word)
+        if not self.words.find_in_db(daily_word):
+            self.words.store_in_db(daily_word, word_info)
+        if type(word_info) == list:
+            word_info = word_info[0]
+
+        # Return definition
+                
+        embed = discord.Embed(
+        title=f"{daily_word}",
+        url=f"https://www.dictionary.com/browse/{daily_word}",
+        color=discord.Colour.blue())
+        embed.set_author(name="Daily-Word")
+        for i in word_info["meanings"]:
+            embed.add_field(name = f'**{i["partOfSpeech"]}**', value= f'', inline=False)
+            embed.add_field(name = f'', value= f'', inline=False)
+            for j in i["definitions"]:
+                embed.add_field(name = f'**Definition:**', value= f'{j["definition"]}', inline=True)
+                if "example" in j.keys():
+                    embed.add_field(name = f'**Example:**', value= f'{j["example"]}', inline=True)
+                else:
+                    embed.add_field(name = f'**Example:**', value= f'', inline=True)
+                embed.add_field(name = f'', value= f'', inline=True)
+    
         for i in users:
             user_connec = await self.bot.fetch_user(int(i['_id']))
             ctx = user_connec.dm_channel
             if ctx is None:
                 ctx = await user_connec.create_dm()
             await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!!")
-                
+            await ctx.send(embed = embed)
+    
+    @staticmethod
+    async def daily_word_scraper():
+        async with aiohttp.ClientSession() as session:
+            url = f'https://www.merriam-webster.com/word-of-the-day'
+            async with session.get(url) as resp:
+                return await resp.text()
         
 async def setup(bot) -> None:
     await bot.add_cog(BotCommands(bot))
