@@ -15,6 +15,8 @@ import random
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 
+daysDict = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6, "all": 8}
+
 user_times = []
 all_user_times = dbCollection('users').fetch_all_from_db()
 for document in all_user_times:
@@ -133,11 +135,11 @@ class BotCommands(commands.Cog):
                 return await resp.json()
             
     @commands.command(aliases = ['register'], usage="<time> <UTC>")
-    async def adduser(self, ctx, time, UTC = "-7"):
+    async def adduser(self, ctx, time = "10:00:00", UTC = "-7"):
         """Add user to task loop for daily word; default pacific coast time
 
         Args:
-            time (str): military time in format "HH:MM:SS"; add all zeros as applicable
+            time (str): military time in format "HH:MM:SS"; add all zeros as applicable, default 10AM Pacific
             UTC (str): UTC timezone, defaults to -7.
         """
         if self.users.find_in_db(str(ctx.message.author.id)):
@@ -153,7 +155,7 @@ class BotCommands(commands.Cog):
         hour = str((int(time[:2]) - int(UTC)) % 24)
         minute = time[3:5]
         second = time[6:]
-        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": []}
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": [], "WeekDay": 8}
         self.users.store_in_db(str(ctx.message.author.id), timeDict)
         
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
@@ -191,7 +193,7 @@ class BotCommands(commands.Cog):
         hour = str((int(time[:2]) - int(UTC)) % 24)
         minute = time[3:5]
         second = time[6:]
-        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": []}
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": [], "WeekDay": 8}
         self.users.replace_in_db(str(ctx.message.author.id), timeDict)
         
         user_times.remove(datetime.time(hour=old_hour, minute=old_minute, second=old_second, tzinfo=timezone.utc))
@@ -397,7 +399,33 @@ class BotCommands(commands.Cog):
     async def unstudy_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("Um, ackshually, you should try this instead: " + f"`!{ctx.command.name} {ctx.command.usage}` :nerd:")
+
+    @commands.command(usage="<weekday>")
+    async def setWeekday(self, ctx, weekday):
+        """Sets the day of week to be reminded.
+
+        Args:
+            weekday (str): the day of the week, or "All" to be reminded daily
+        """
+        if not self.users.find_in_db(str(ctx.message.author.id)):
+            await ctx.send(f"{ctx.author.mention} You're not registered! LOL! If you want reminders, use **!adduser** instead.")
+            return
         
+        user = self.users.fetch_from_db(str(ctx.message.author.id))
+        newData = user['data']
+        day = daysDict.get(weekday.lower())
+
+        if day == None:
+            await ctx.send(f"{weekday} is not a valid day!")
+            return
+        
+        newData['WeekDay'] = day
+        self.users.replace_in_db(str(ctx.message.author.id), newData)
+        await ctx.send("Reminder day successfully set to "+f"{weekday}!")
+        
+        
+
+
     # @tasks.loop(time = user_times)
     @tasks.loop(minutes = 0.5)
     async def daily_word(self):
@@ -405,6 +433,8 @@ class BotCommands(commands.Cog):
         year = now.year
         month = now.month
         day = now.day
+        dayOfWeek = now.weekday()
+        prevDayOfWeek = (dayOfWeek + 6) % 7
         users = self.users.fetch_all_from_db()
         users = [i for i in users]
         new_users = []
@@ -413,6 +443,9 @@ class BotCommands(commands.Cog):
             hour = int(h['Hour'])
             minute = int(h['Minutes'])
             second = int(h['Seconds'])
+            weekday = int(h["WeekDay"])
+            if(weekday != 8 and weekday != dayOfWeek and weekday != prevDayOfWeek):
+                continue
             if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes = 0.25):
                 continue
             new_users.append(i)
@@ -448,12 +481,18 @@ class BotCommands(commands.Cog):
     
         for i in users:
             user_connec = await self.bot.fetch_user(int(i['_id']))
+            weekday = int(i["data"]["WeekDay"])
             ctx = user_connec.dm_channel
             if ctx is None:
                 ctx = await user_connec.create_dm()
-            
-            await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!! {random_emoji()}")
-            await ctx.send(embed = embed)
+
+            if weekday == dayOfWeek or weekday == 8:
+                await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!! {random_emoji()}")
+                await ctx.send(embed = embed)
+            elif weekday == prevDayOfWeek:
+                await ctx.send(f"<@{i['_id']}> u good for tmrw lil bro? {random_emoji()}")
+
+
     
     @staticmethod
     async def daily_word_scraper():
