@@ -155,7 +155,7 @@ class BotCommands(commands.Cog):
         hour = str((int(time[:2]) - int(UTC)) % 24)
         minute = time[3:5]
         second = time[6:]
-        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": [], "WeekDay": 8}
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": [], "WeekDay": 8, "Reminders": []}
         self.users.store_in_db(str(ctx.message.author.id), timeDict)
         
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
@@ -487,8 +487,10 @@ class BotCommands(commands.Cog):
                 ctx = await user_connec.create_dm()
 
             if weekday == dayOfWeek or weekday == 8:
-                await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!! {random_emoji()}")
-                await ctx.send(embed = embed)
+                #await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!! {random_emoji()}")
+                #await ctx.send(embed = embed)
+                await ctx.send(f"<@{i['_id']}> u good lil bro? {random_emoji()}")
+
             elif weekday == prevDayOfWeek:
                 await ctx.send(f"<@{i['_id']}> u good for tmrw lil bro? {random_emoji()}")
 
