@@ -155,7 +155,7 @@ class BotCommands(commands.Cog):
         hour = str((int(time[:2]) - int(UTC)) % 24)
         minute = time[3:5]
         second = time[6:]
-        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": [], "WeekDay": 8}
+        timeDict = {"Hour": hour, "Minutes": minute, "Seconds": second, "_id": str(ctx.message.author.id), "Study": [], "WeekDay": 8, "Reminders": []}
         self.users.store_in_db(str(ctx.message.author.id), timeDict)
         
         user_times.append(datetime.time(hour=int(hour), minute=int(minute), second=int(second), tzinfo=timezone.utc))
@@ -440,15 +440,17 @@ class BotCommands(commands.Cog):
         new_users = []
         for i in users:
             h = i['data']
-            hour = int(h['Hour'])
-            minute = int(h['Minutes'])
-            second = int(h['Seconds'])
-            weekday = int(h["WeekDay"])
-            if(weekday != 8 and weekday != dayOfWeek and weekday != prevDayOfWeek):
-                continue
-            if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes = 0.25):
-                continue
-            new_users.append(i)
+            for j in h['Reminders']:
+                hour = int(j['Hour'])
+                minute = int(j['Minutes'])
+                second = int(j['Seconds'])
+                weekday = int(j["Weekday"])
+                if(weekday != 8 and weekday != dayOfWeek and weekday != prevDayOfWeek):
+                    continue
+                if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes = 0.25):
+                    continue
+                if i not in new_users:
+                    new_users.append(i)
         users = new_users
         
         html_content = await self.daily_word_scraper()
@@ -481,16 +483,28 @@ class BotCommands(commands.Cog):
     
         for i in users:
             user_connec = await self.bot.fetch_user(int(i['_id']))
-            weekday = int(i["data"]["WeekDay"])
-            ctx = user_connec.dm_channel
-            if ctx is None:
-                ctx = await user_connec.create_dm()
+            h = i['data']
+            for j in h['Reminders']:
+                hour = int(j['Hour'])
+                minute = int(j['Minutes'])
+                second = int(j['Seconds'])
+                weekday = int(j["Weekday"])
+                if(weekday != 8 and weekday != dayOfWeek and weekday != prevDayOfWeek):
+                    continue
+                if abs(now - datetime.datetime(year, month, day, hour, minute, second)) > datetime.timedelta(minutes = 0.25):
+                    continue
+                
+                ctx = user_connec.dm_channel
+                if ctx is None:
+                    ctx = await user_connec.create_dm()
 
-            if weekday == dayOfWeek or weekday == 8:
-                await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!! {random_emoji()}")
-                await ctx.send(embed = embed)
-            elif weekday == prevDayOfWeek:
-                await ctx.send(f"<@{i['_id']}> u good for tmrw lil bro? {random_emoji()}")
+                if weekday == dayOfWeek or weekday == 8:
+                    #await ctx.send(f"<@{i['_id']}> You now have a daily word of the day!!!! {random_emoji()}")
+                    #await ctx.send(embed = embed)
+                    await ctx.send(f"<@{i['_id']}> u good lil bro? {random_emoji()}")
+
+                elif weekday == prevDayOfWeek:
+                    await ctx.send(f"<@{i['_id']}> u good for tmrw lil bro? {random_emoji()}")
 
 
     
@@ -507,6 +521,32 @@ class BotCommands(commands.Cog):
         """
 
         await ctx.send(random_emoji())
+
+    @commands.command()
+    async def addReminder(self, ctx, time = "10:00:00", UTC = "-7", weekday = "All"):
+        """Adds a reminder
+        """
+
+        if not self.users.find_in_db(str(ctx.message.author.id)):
+            await ctx.send(f"{ctx.author.mention} You're not registered! LOL! If you want reminders, use **!adduser** instead.")
+            return
+        
+        user = self.users.fetch_from_db(str(ctx.message.author.id))
+        newData = user['data']
+        day = daysDict.get(weekday.lower())
+
+        if day == None:
+            await ctx.send(f"{weekday} is not a valid day!")
+            return
+        
+        hour = str((int(time[:2]) - int(UTC)) % 24)
+        minute = time[3:5]
+        second = time[6:]
+        
+        newData['WeekDay'] = day
+        newData['Reminders'].append({'Hour': hour, 'Minutes': minute, 'Seconds': second, 'Weekday': day})
+        self.users.replace_in_db(str(ctx.message.author.id), newData)
+        await ctx.send("Reminder successfully added!")
             
 def random_emoji():
     emoji_list = [':nerd:', ':disguised_face:', ':clown:', ":cold_face:", ":heart_eyes:", ":full_moon_with_face:", ":smiling_face_with_3_hearts:",
